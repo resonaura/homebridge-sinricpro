@@ -20,23 +20,21 @@ This plugin seamlessly exposes all your SinricPro devices to HomeKit, enabling y
 
 #### Following devices types are supported:
 
-|Sinric Pro |HomeKit Accessory |Notes
-|---        |---               |--- 
-| `Switch` | Switch | -
-| `Blinds` | WindowCovering | -
-| `Dimmable Switch` | Lightbulb | -
-| `Fan` | Fan | -
-| `Garage Door` | GarageDoorOpener | -
-| `Light` | Lightbulb | -
-| `Lock` | LockMechanism | -
-| `Thermostat` | Thermostat | -
-| `TV` | Television | On and Off only.
-| `AC Unit` | Thermostat | -
-| `Temperature Sensor` | TemperatureSensor and HumiditySensor | -
-| `Motion Sensor` | MotionSensor | - 
-| `Contact Sensor` | ContactSensor | - 
-
-
+| Sinric Pro           | HomeKit Accessory                    | Notes            |
+| -------------------- | ------------------------------------ | ---------------- |
+| `Switch`             | Switch                               | -                |
+| `Blinds`             | WindowCovering                       | -                |
+| `Dimmable Switch`    | Lightbulb                            | -                |
+| `Fan`                | Fan                                  | -                |
+| `Garage Door`        | GarageDoorOpener                     | -                |
+| `Light`              | Lightbulb                            | -                |
+| `Lock`               | LockMechanism                        | -                |
+| `Thermostat`         | Thermostat                           | -                |
+| `TV`                 | Television                           | On and Off only. |
+| `AC Unit`            | Thermostat                           | -                |
+| `Temperature Sensor` | TemperatureSensor and HumiditySensor | -                |
+| `Motion Sensor`      | MotionSensor                         | -                |
+| `Contact Sensor`     | ContactSensor                        | -                |
 
 #### For Developments
 
@@ -46,6 +44,7 @@ This plugin seamlessly exposes all your SinricPro devices to HomeKit, enabling y
 4. npm run watch
 
 ## Join the community!
+
 Join us on our [Official Discord Server](https://discord.gg/rq9vcRcSqA)!
 
 ### Limitations

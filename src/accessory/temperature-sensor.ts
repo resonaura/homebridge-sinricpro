@@ -15,7 +15,10 @@ import { ModelConstants, ActionConstants } from '../constants';
  * Sinric Pro - Temperature Sensor
  * https://developers.homebridge.io/#/service/TemperatureSensor and https://developers.homebridge.io/#/service/HumiditySensor
  */
-export class SinricProTemperatureSensor extends AccessoryController implements SinricProAccessory {
+export class SinricProTemperatureSensor
+  extends AccessoryController
+  implements SinricProAccessory
+{
   private readonly temperatureService: Service;
   private readonly humidityService: Service;
 
@@ -30,21 +33,43 @@ export class SinricProTemperatureSensor extends AccessoryController implements S
   ) {
     super(platform, accessory);
 
-    this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, ModelConstants.MANUFACTURER)
-      .setCharacteristic(this.platform.Characteristic.Model, ModelConstants.TEMPERATURE_SENSOR_MODEL)
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, this.sinricProDeviceId);
+    this.accessory
+      .getService(this.platform.Service.AccessoryInformation)!
+      .setCharacteristic(
+        this.platform.Characteristic.Manufacturer,
+        ModelConstants.MANUFACTURER,
+      )
+      .setCharacteristic(
+        this.platform.Characteristic.Model,
+        ModelConstants.TEMPERATURE_SENSOR_MODEL,
+      )
+      .setCharacteristic(
+        this.platform.Characteristic.SerialNumber,
+        this.sinricProDeviceId,
+      );
 
-    this.platform.log.debug('[SinricProTemperatureSensor()]: Adding device:', this.accessory.displayName, accessory.context.device);
+    this.platform.log.debug(
+      '[SinricProTemperatureSensor()]: Adding device:',
+      this.accessory.displayName,
+      accessory.context.device,
+    );
 
-    this.temperatureService = this.accessory.getService(this.platform.Service.TemperatureSensor)
-      ?? this.accessory.addService(this.platform.Service.TemperatureSensor);
+    this.temperatureService =
+      this.accessory.getService(this.platform.Service.TemperatureSensor) ??
+      this.accessory.addService(this.platform.Service.TemperatureSensor);
 
-    this.humidityService = this.accessory.getService(this.platform.Service.HumiditySensor)
-      ?? this.accessory.addService(this.platform.Service.HumiditySensor);
+    this.humidityService =
+      this.accessory.getService(this.platform.Service.HumiditySensor) ??
+      this.accessory.addService(this.platform.Service.HumiditySensor);
 
-    this.temperatureService.setCharacteristic(this.platform.Characteristic.Name, `${accessory.context.device.name} Temperature Sensor`);
-    this.humidityService.setCharacteristic(this.platform.Characteristic.Name, `${accessory.context.device.name} Humidity Sensor`);
+    this.temperatureService.setCharacteristic(
+      this.platform.Characteristic.Name,
+      `${accessory.context.device.name} Temperature Sensor`,
+    );
+    this.humidityService.setCharacteristic(
+      this.platform.Characteristic.Name,
+      `${accessory.context.device.name} Humidity Sensor`,
+    );
 
     // register handlers for Characteristic
     this.temperatureService
@@ -63,12 +88,22 @@ export class SinricProTemperatureSensor extends AccessoryController implements S
   }
 
   getCurrentRelativeHumidity(): CharacteristicValue {
-    this.platform.log.debug('getCurrentRelativeHumidity:', this.accessory.displayName, '=', this.states.humidity);
+    this.platform.log.debug(
+      'getCurrentRelativeHumidity:',
+      this.accessory.displayName,
+      '=',
+      this.states.humidity,
+    );
     return this.states.humidity;
   }
 
   getCurrentTemperature(): CharacteristicValue {
-    this.platform.log.debug('getCurrentTemperature:', this.accessory.displayName, '=', this.states.temperature);
+    this.platform.log.debug(
+      'getCurrentTemperature:',
+      this.accessory.displayName,
+      '=',
+      this.states.temperature,
+    );
     return this.states.temperature;
   }
 
@@ -78,13 +113,24 @@ export class SinricProTemperatureSensor extends AccessoryController implements S
    * @param value  - The new temperature/humidity value.
    */
   updateState(action: string, value: any): void {
-    this.platform.log.debug('[updateState()]:', this.accessory.displayName, 'action=', action, 'value=', value);
+    this.platform.log.debug(
+      '[updateState()]:',
+      this.accessory.displayName,
+      'action=',
+      action,
+      'value=',
+      value,
+    );
 
-    if(action === ActionConstants.CURRENT_TEMPERATURE) {
+    if (action === ActionConstants.CURRENT_TEMPERATURE) {
       this.states.temperature = value.temperature ?? 0;
       this.states.humidity = value.humidity ?? 0;
-      this.temperatureService.getCharacteristic(this.platform.Characteristic.CurrentTemperature).updateValue(this.states.temperature);
-      this.temperatureService.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity).updateValue(this.states.humidity);
+      this.temperatureService
+        .getCharacteristic(this.platform.Characteristic.CurrentTemperature)
+        .updateValue(this.states.temperature);
+      this.temperatureService
+        .getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
+        .updateValue(this.states.humidity);
     }
   }
 }

@@ -10,7 +10,11 @@ import https from 'https';
 import * as util from 'util';
 
 import { SinricProDevice } from './model/sinricpro-device';
-import { ActionConstants, SINRICPRO_API_ENDPOINT_BASE_URL, SINRICPRO_HOMEBRIDGE_CLIENT_ID } from './constants';
+import {
+  ActionConstants,
+  SINRICPRO_API_ENDPOINT_BASE_URL,
+  SINRICPRO_HOMEBRIDGE_CLIENT_ID,
+} from './constants';
 import { Guid } from './utils/guid';
 
 export class SinricProApiClient {
@@ -28,7 +32,8 @@ export class SinricProApiClient {
 
   constructor(
     apiKey: string,
-    public readonly log: Logger) {
+    public readonly log: Logger,
+  ) {
     this.apiKey = apiKey;
   }
 
@@ -42,11 +47,11 @@ export class SinricProApiClient {
     const devices: SinricProDevice[] = [];
 
     if (await this.authenticate()) {
-      const initData = await Promise.all([
-        this.axiosClient.get('/devices'),
-      ]);
+      const initData = await Promise.all([this.axiosClient.get('/devices')]);
 
-      this.log.debug(`[getDevices()]: ${initData[0].data.devices.length} device(s) found!`);
+      this.log.debug(
+        `[getDevices()]: ${initData[0].data.devices.length} device(s) found!`,
+      );
 
       for (const device of initData[0].data.devices) {
         const sinricproDevice: SinricProDevice = {
@@ -76,7 +81,10 @@ export class SinricProApiClient {
     this.log.debug('[authenticate()]: Login to SinricPro...');
 
     // eslint-disable-next-line eqeqeq
-    if (this.expiresAt != null && (new Date().getTime() - this.expiresAt.getTime() < this.TWO_MINUTES_MILLIS)) {
+    if (
+      this.expiresAt &&
+      new Date().getTime() - this.expiresAt.getTime() < this.TWO_MINUTES_MILLIS
+    ) {
       // Has a valid auth token. do nothing...
       return true;
     }
@@ -84,18 +92,26 @@ export class SinricProApiClient {
     this.log.info('[authenticate()]: Getting a new auth token...');
 
     try {
-      const response = await axios.post(this.authEndpointUri, {}, {
-        httpsAgent: this.httpsAgent,
-        headers: {
-          'Content-Type': 'application/json',
-          'x-sinric-api-key': this.apiKey,
+      const response = await axios.post(
+        this.authEndpointUri,
+        {},
+        {
+          httpsAgent: this.httpsAgent,
+          headers: {
+            'Content-Type': 'application/json',
+            'x-sinric-api-key': this.apiKey,
+          },
         },
-      });
+      );
 
       if (response.data.success) {
         this.accessToken = response.data.accessToken;
-        this.expiresAt = new Date(new Date().getTime() + (1000 * response.data.expiresIn));
-        this.log.info('[authenticate()]: New auth token expires at: ' + this.expiresAt);
+        this.expiresAt = new Date(
+          new Date().getTime() + 1000 * response.data.expiresIn,
+        );
+        this.log.info(
+          '[authenticate()]: New auth token expires at: ' + this.expiresAt,
+        );
 
         const config: AxiosRequestConfig = {
           timeout: 10000,
@@ -107,9 +123,7 @@ export class SinricProApiClient {
           },
         };
 
-        this.axiosClient = axios.create(
-          config,
-        );
+        this.axiosClient = axios.create(config);
 
         this.log.info('[authenticate()]: Success!');
         return true;
@@ -134,12 +148,12 @@ export class SinricProApiClient {
 
   private getCommand(action, value) {
     return {
-      'clientId': SINRICPRO_HOMEBRIDGE_CLIENT_ID,
-      'messageId': Guid.newGuid(),
-      'type': 'request',
-      'action': action,
-      'createdAt': this.getSecondsSinceEpich(),
-      'value': JSON.stringify(value),
+      clientId: SINRICPRO_HOMEBRIDGE_CLIENT_ID,
+      messageId: Guid.newGuid(),
+      type: 'request',
+      action: action,
+      createdAt: this.getSecondsSinceEpich(),
+      value: JSON.stringify(value),
     };
   }
 
@@ -148,16 +162,18 @@ export class SinricProApiClient {
 
     if (await this.authenticate()) {
       try {
-        const response = await this.axiosClient.post(
-          deviceActionUrl,
-          data,
-        );
+        const response = await this.axiosClient.post(deviceActionUrl, data);
 
         if (response.status === 200) {
-          this.log.debug('[execAction()]: request has been queued for processing!');
+          this.log.debug(
+            '[execAction()]: request has been queued for processing!',
+          );
           return true;
         } else {
-          this.log.error('[execAction()]: server returned an error. status: ', response.status);
+          this.log.error(
+            '[execAction()]: server returned an error. status: ',
+            response.status,
+          );
           return false;
         }
       } catch (error) {
@@ -170,50 +186,100 @@ export class SinricProApiClient {
     return false;
   }
 
-  public async setPowerState(deviceId: string, powerState: string): Promise<boolean> {
-    const data = this.getCommand(ActionConstants.SET_POWER_STATE, { 'state': powerState });
+  public async setPowerState(
+    deviceId: string,
+    powerState: string,
+  ): Promise<boolean> {
+    const data = this.getCommand(ActionConstants.SET_POWER_STATE, {
+      state: powerState,
+    });
     return this.execAction(deviceId, data);
   }
 
-  public async setBrightness(deviceId: string, brightness: number): Promise<boolean> {
-    const data = this.getCommand(ActionConstants.SET_BRIGHTNESS, { 'brightness': brightness });
+  public async setBrightness(
+    deviceId: string,
+    brightness: number,
+  ): Promise<boolean> {
+    const data = this.getCommand(ActionConstants.SET_BRIGHTNESS, {
+      brightness: brightness,
+    });
     return this.execAction(deviceId, data);
   }
 
-  public async setRangeValue(deviceId: string, rangeValue: number): Promise<boolean> {
-    const data = this.getCommand(ActionConstants.SET_RANGE_VALUE, { 'rangeValue': rangeValue });
+  public async setColor(
+    deviceId: string,
+    color: { r: number; g: number; b: number },
+  ): Promise<boolean> {
+    const data = this.getCommand(ActionConstants.SET_COLOR, { color });
     return this.execAction(deviceId, data);
   }
 
-  public async setTargetTemperature(deviceId: string, toTemperature: number): Promise<boolean> {
-    const data = this.getCommand(ActionConstants.TARGET_TEMPERATURE, { 'temperature': toTemperature });
+  public async setColorTemperature(
+    deviceId: string,
+    colorTemperature: number,
+  ): Promise<boolean> {
+    const data = this.getCommand(ActionConstants.SET_COLOR_TEMPERATURE, {
+      colorTemperature,
+    });
+    return this.execAction(deviceId, data);
+  }
+
+  public async setRangeValue(
+    deviceId: string,
+    rangeValue: number,
+  ): Promise<boolean> {
+    const data = this.getCommand(ActionConstants.SET_RANGE_VALUE, {
+      rangeValue: rangeValue,
+    });
+    return this.execAction(deviceId, data);
+  }
+
+  public async setTargetTemperature(
+    deviceId: string,
+    toTemperature: number,
+  ): Promise<boolean> {
+    const data = this.getCommand(ActionConstants.TARGET_TEMPERATURE, {
+      temperature: toTemperature,
+    });
     return this.execAction(deviceId, data);
   }
 
   public async setMode(deviceId: string, mode: string): Promise<boolean> {
-    const data = this.getCommand(ActionConstants.SET_MODE, { 'mode': mode });
+    const data = this.getCommand(ActionConstants.SET_MODE, { mode: mode });
     return this.execAction(deviceId, data);
   }
 
   public async setLockState(deviceId: string, state: string): Promise<boolean> {
-    const data = this.getCommand(ActionConstants.SET_LOCK_STATE, { 'state': state });
+    const data = this.getCommand(ActionConstants.SET_LOCK_STATE, {
+      state: state,
+    });
     return this.execAction(deviceId, data);
   }
 
   public async setDoorbellPress(deviceId: string): Promise<boolean> {
-    const data = this.getCommand(ActionConstants.DOORBELL_PRESS, { 'state': 'pressed' });
+    const data = this.getCommand(ActionConstants.DOORBELL_PRESS, {
+      state: 'pressed',
+    });
     return this.execAction(deviceId, data);
   }
 
-  public async setPowerLevel(deviceId: string, powerLevel: number): Promise<boolean> {
-    const data = this.getCommand(ActionConstants.SET_POWER_LEVEL, { 'powerLevel': powerLevel });
+  public async setPowerLevel(
+    deviceId: string,
+    powerLevel: number,
+  ): Promise<boolean> {
+    const data = this.getCommand(ActionConstants.SET_POWER_LEVEL, {
+      powerLevel: powerLevel,
+    });
     return this.execAction(deviceId, data);
   }
 
-  public async setThermostatMode(deviceId: string, thermostatMode: string): Promise<boolean> {
-    const data = this.getCommand(ActionConstants.SET_THERMOSTAT_MODE, { 'thermostatMode': thermostatMode });
+  public async setThermostatMode(
+    deviceId: string,
+    thermostatMode: string,
+  ): Promise<boolean> {
+    const data = this.getCommand(ActionConstants.SET_THERMOSTAT_MODE, {
+      thermostatMode: thermostatMode,
+    });
     return this.execAction(deviceId, data);
   }
-
-
 }
