@@ -4,7 +4,15 @@
  *
  *  This file is part of the Sinric Pro - Homebridge Plugin (https://github.com/sinricpro/homebridge-sinricpro)
  */
-import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
+import {
+  API,
+  DynamicPlatformPlugin,
+  Logger,
+  PlatformAccessory,
+  PlatformConfig,
+  Service,
+  Characteristic,
+} from 'homebridge';
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { SinricProApiClient } from './api-client';
@@ -33,7 +41,8 @@ import { SinricProWindowACUnit } from './accessory/window-ac-unit';
  */
 export class SinricProPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
-  public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
+  public readonly Characteristic: typeof Characteristic =
+    this.api.hap.Characteristic;
 
   public sinricProApiClient!: SinricProApiClient;
   public sinricProSseClient!: SinricProSseClient;
@@ -47,8 +56,7 @@ export class SinricProPlatform implements DynamicPlatformPlugin {
     public readonly config: PlatformConfig,
     public readonly api: API,
   ) {
-
-    if(!config.token) {
+    if (!config.token) {
       this.log.error('API Token is empty. Cannot continue!');
       return;
     }
@@ -62,8 +70,7 @@ export class SinricProPlatform implements DynamicPlatformPlugin {
     // to start discovery of new accessories.
     this.api.on('didFinishLaunching', () => {
       this.didFinishLaunching();
-    },
-    );
+    });
   }
 
   /**
@@ -86,22 +93,35 @@ export class SinricProPlatform implements DynamicPlatformPlugin {
     this.log.info('[didFinishLaunching()]: authenticate..!');
     const authenticated = await this.sinricProApiClient.authenticate();
 
-    if(authenticated) {
+    if (authenticated) {
       this.log.info('[didFinishLaunching()]: init SSE Client..');
-      this.sinricProSseClient = new SinricProSseClient(this.log, this.sinricProApiClient.authToken);
+      this.sinricProSseClient = new SinricProSseClient(
+        this.log,
+        this.sinricProApiClient.authToken,
+      );
       // listen to device state changes
-      this.sinricProSseClient.onDeviceStateChange = (deviceId: string, action: string, value: any) => {
-        this.sinricproDevices.filter(spd => spd.sinricProDeviceId === deviceId).map((device) => {
-          this.log.info('[onDeviceStateChange()]: Update device id: %s with %s', device.sinricProDeviceId, value);
-          device.updateState(action, value);
-        });
+      this.sinricProSseClient.onDeviceStateChange = (
+        deviceId: string,
+        action: string,
+        value: any,
+      ) => {
+        this.sinricproDevices
+          .filter((spd) => spd.sinricProDeviceId === deviceId)
+          .map((device) => {
+            this.log.info(
+              '[onDeviceStateChange()]: Update device id: %s with %s',
+              device.sinricProDeviceId,
+              value,
+            );
+            device.updateState(action, value);
+          });
       };
       this.sinricProSseClient.listen();
     }
 
     this.log.info('[didFinishLaunching()]: start device discovery..!');
 
-    const devices = await this.sinricProApiClient.getDevices() || [];
+    const devices = (await this.sinricProApiClient.getDevices()) || [];
 
     for (const device of devices) {
       // generate a unique id for the accessory this should be generated from
@@ -111,11 +131,16 @@ export class SinricProPlatform implements DynamicPlatformPlugin {
 
       // see if an accessory with the same uuid has already been registered and restored from
       // the cached devices we stored in the `configureAccessory` method above
-      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+      const existingAccessory = this.accessories.find(
+        (accessory) => accessory.UUID === uuid,
+      );
 
       if (existingAccessory) {
         // the accessory already exists
-        this.log.info('[didFinishLaunching()]: Restoring existing accessory from cache:', existingAccessory.displayName);
+        this.log.info(
+          '[didFinishLaunching()]: Restoring existing accessory from cache:',
+          existingAccessory.displayName,
+        );
 
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
         existingAccessory.context.device = device;
@@ -142,9 +167,11 @@ export class SinricProPlatform implements DynamicPlatformPlugin {
         // create the accessory handler for the newly create accessory
         // this is imported from `platformAccessory.ts`
         // new CrestronHomePlatformAccessory(this, accessory);
-        if(this.createSinricProAccessory(accessory)){
+        if (this.createSinricProAccessory(accessory)) {
           // link the accessory to your platform
-          this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+          this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [
+            accessory,
+          ]);
           this.accessories.push(accessory);
         }
       }
@@ -154,7 +181,10 @@ export class SinricProPlatform implements DynamicPlatformPlugin {
   createSinricProAccessory(accessory: PlatformAccessory): boolean {
     const deviceTypeCode = accessory.context.device.deviceType.code;
 
-    this.log.info('[createSinricProAccessory()]: Adding new accessory:', accessory.displayName);
+    this.log.info(
+      '[createSinricProAccessory()]: Adding new accessory:',
+      accessory.displayName,
+    );
 
     switch (deviceTypeCode) {
       case DeviceTypeConstants.SWITCH:
@@ -164,13 +194,17 @@ export class SinricProPlatform implements DynamicPlatformPlugin {
         this.sinricproDevices.push(new SinricProLight(this, accessory));
         break;
       case DeviceTypeConstants.DIMMABLE_SWITCH:
-        this.sinricproDevices.push(new SinricProDimmableSwitch(this, accessory));
+        this.sinricproDevices.push(
+          new SinricProDimmableSwitch(this, accessory),
+        );
         break;
       case DeviceTypeConstants.DOORBELL:
         this.sinricproDevices.push(new SinricProDoorbell(this, accessory));
         break;
       case DeviceTypeConstants.TEMPERATURE_SENSOR:
-        this.sinricproDevices.push(new SinricProTemperatureSensor(this, accessory));
+        this.sinricproDevices.push(
+          new SinricProTemperatureSensor(this, accessory),
+        );
         break;
       case DeviceTypeConstants.FAN:
         this.sinricproDevices.push(new SinricProFan(this, accessory));
@@ -200,11 +234,13 @@ export class SinricProPlatform implements DynamicPlatformPlugin {
         this.sinricproDevices.push(new SinricProWindowACUnit(this, accessory));
         break;
       default:
-        this.log.warn('[createSinricProAccessory()]: Unsupported accessory type:', accessory.context.device.type);
+        this.log.warn(
+          '[createSinricProAccessory()]: Unsupported accessory type:',
+          accessory.context.device.type,
+        );
         break;
     }
 
     return true;
-
   }
 }

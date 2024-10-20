@@ -15,7 +15,10 @@ import { ActionConstants, ModelConstants } from '../constants';
  * Sinric Pro - Motion Sensor
  * https://developers.homebridge.io/#/service/MotionSensor
  */
-export class SinricProMotionSensor extends AccessoryController implements SinricProAccessory {
+export class SinricProMotionSensor
+  extends AccessoryController
+  implements SinricProAccessory
+{
   private readonly service: Service;
 
   private states = {
@@ -28,17 +31,35 @@ export class SinricProMotionSensor extends AccessoryController implements Sinric
   ) {
     super(platform, accessory);
 
-    this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, ModelConstants.MANUFACTURER)
-      .setCharacteristic(this.platform.Characteristic.Model, ModelConstants.MOTION_SENSOR_MODEL)
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, this.sinricProDeviceId);
+    this.accessory
+      .getService(this.platform.Service.AccessoryInformation)!
+      .setCharacteristic(
+        this.platform.Characteristic.Manufacturer,
+        ModelConstants.MANUFACTURER,
+      )
+      .setCharacteristic(
+        this.platform.Characteristic.Model,
+        ModelConstants.MOTION_SENSOR_MODEL,
+      )
+      .setCharacteristic(
+        this.platform.Characteristic.SerialNumber,
+        this.sinricProDeviceId,
+      );
 
-    this.platform.log.debug('[SinricProMotionSensor()]: Adding device:', this.accessory.displayName, accessory.context.device);
+    this.platform.log.debug(
+      '[SinricProMotionSensor()]: Adding device:',
+      this.accessory.displayName,
+      accessory.context.device,
+    );
 
-    this.service = this.accessory.getService(this.platform.Service.MotionSensor)
-      ?? this.accessory.addService(this.platform.Service.MotionSensor);
+    this.service =
+      this.accessory.getService(this.platform.Service.MotionSensor) ??
+      this.accessory.addService(this.platform.Service.MotionSensor);
 
-    this.service.setCharacteristic(this.platform.Characteristic.Name, `${accessory.context.device.name} Motion Sensor`);
+    this.service.setCharacteristic(
+      this.platform.Characteristic.Name,
+      `${accessory.context.device.name} Motion Sensor`,
+    );
 
     // register handlers for Characteristic
     this.service
@@ -46,11 +67,17 @@ export class SinricProMotionSensor extends AccessoryController implements Sinric
       .onGet(this.getMotionDetected.bind(this));
 
     // restore present device state.
-    this.states.motionDetected = (accessory.context.device.lastMotionState === 'detected' ? 1 : 0);
+    this.states.motionDetected =
+      accessory.context.device.lastMotionState === 'detected' ? 1 : 0;
   }
 
   getMotionDetected(): CharacteristicValue {
-    this.platform.log.debug('getMotionDetected:', this.accessory.displayName, '=', this.states.motionDetected);
+    this.platform.log.debug(
+      'getMotionDetected:',
+      this.accessory.displayName,
+      '=',
+      this.states.motionDetected,
+    );
     return this.states.motionDetected;
   }
 
@@ -60,12 +87,22 @@ export class SinricProMotionSensor extends AccessoryController implements Sinric
    * @param value  - "state": "detected" or  "state": "notDetected"
    */
   updateState(action: string, value: any): void {
-    this.platform.log.debug('[updateState()]:', this.accessory.displayName, 'action=', action, 'value=', value);
+    this.platform.log.debug(
+      '[updateState()]:',
+      this.accessory.displayName,
+      'action=',
+      action,
+      'value=',
+      value,
+    );
 
-    if(action === ActionConstants.MOTION) {
-      this.states.motionDetected = (value.state === 'detected' ? 1 : 0);
+    if (action === ActionConstants.MOTION) {
+      this.states.motionDetected = value.state === 'detected' ? 1 : 0;
     }
 
-    this.service.updateCharacteristic(this.platform.Characteristic.MotionDetected, this.states.motionDetected);
+    this.service.updateCharacteristic(
+      this.platform.Characteristic.MotionDetected,
+      this.states.motionDetected,
+    );
   }
 }

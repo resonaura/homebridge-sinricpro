@@ -17,7 +17,10 @@ import { ModelConstants } from '../constants';
  *
  * AppleHome app shows device is not supported.
  */
-export class SinricProDoorbell extends AccessoryController implements SinricProAccessory {
+export class SinricProDoorbell
+  extends AccessoryController
+  implements SinricProAccessory
+{
   private service: Service;
 
   private states = {
@@ -30,17 +33,35 @@ export class SinricProDoorbell extends AccessoryController implements SinricProA
   ) {
     super(platform, accessory);
 
-    this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, ModelConstants.MANUFACTURER)
-      .setCharacteristic(this.platform.Characteristic.Model, ModelConstants.DOORBELL_MODEL)
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, this.sinricProDeviceId);
+    this.accessory
+      .getService(this.platform.Service.AccessoryInformation)!
+      .setCharacteristic(
+        this.platform.Characteristic.Manufacturer,
+        ModelConstants.MANUFACTURER,
+      )
+      .setCharacteristic(
+        this.platform.Characteristic.Model,
+        ModelConstants.DOORBELL_MODEL,
+      )
+      .setCharacteristic(
+        this.platform.Characteristic.SerialNumber,
+        this.sinricProDeviceId,
+      );
 
-    this.platform.log.debug('[SinricProDoorbell()]: Adding device:', this.accessory.displayName, accessory.context.device);
+    this.platform.log.debug(
+      '[SinricProDoorbell()]: Adding device:',
+      this.accessory.displayName,
+      accessory.context.device,
+    );
 
-    this.service = this.accessory.getService(this.platform.Service.Doorbell)
-      ?? this.accessory.addService(this.platform.Service.Doorbell);
+    this.service =
+      this.accessory.getService(this.platform.Service.Doorbell) ??
+      this.accessory.addService(this.platform.Service.Doorbell);
 
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.name);
+    this.service.setCharacteristic(
+      this.platform.Characteristic.Name,
+      accessory.context.device.name,
+    );
     this.service.setPrimaryService(true);
 
     // register handlers for characteristics
@@ -57,7 +78,8 @@ export class SinricProDoorbell extends AccessoryController implements SinricProA
 
   handleProgrammableSwitchEventGet() {
     //this.setDoorbellPress();
-    const currentValue = this.platform.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS;
+    const currentValue =
+      this.platform.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS;
     return currentValue;
   }
 }

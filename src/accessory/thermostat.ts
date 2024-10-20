@@ -16,16 +16,22 @@ import { ActionConstants, ModelConstants } from '../constants';
  * Sinric Pro - Thermostat
  * https://developers.homebridge.io/#/service/Thermostat
  */
-export class SinricProThermostat extends AccessoryController implements SinricProAccessory {
+export class SinricProThermostat
+  extends AccessoryController
+  implements SinricProAccessory
+{
   private service: Service;
 
   private thermostatStates = {
     on: false,
     currentTemperature: 10,
-    targetTemperature : 10,
-    targetTemperatureDisplayUnit: this.platform.Characteristic.TemperatureDisplayUnits.CELSIUS,
-    currentHeatingCoolingState: this.platform.Characteristic.CurrentHeatingCoolingState.OFF,
-    targetHeatingCoolingState: this.platform.Characteristic.TargetHeatingCoolingState.AUTO,
+    targetTemperature: 10,
+    targetTemperatureDisplayUnit:
+      this.platform.Characteristic.TemperatureDisplayUnits.CELSIUS,
+    currentHeatingCoolingState:
+      this.platform.Characteristic.CurrentHeatingCoolingState.OFF,
+    targetHeatingCoolingState:
+      this.platform.Characteristic.TargetHeatingCoolingState.AUTO,
   };
 
   constructor(
@@ -34,47 +40,79 @@ export class SinricProThermostat extends AccessoryController implements SinricPr
   ) {
     super(platform, accessory);
 
-    this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, ModelConstants.MANUFACTURER)
-      .setCharacteristic(this.platform.Characteristic.Model, ModelConstants.THERMOSTAT_MODEL)
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, this.sinricProDeviceId);
+    this.accessory
+      .getService(this.platform.Service.AccessoryInformation)!
+      .setCharacteristic(
+        this.platform.Characteristic.Manufacturer,
+        ModelConstants.MANUFACTURER,
+      )
+      .setCharacteristic(
+        this.platform.Characteristic.Model,
+        ModelConstants.THERMOSTAT_MODEL,
+      )
+      .setCharacteristic(
+        this.platform.Characteristic.SerialNumber,
+        this.sinricProDeviceId,
+      );
 
-    this.platform.log.debug('[SinricProThermostat()]: Adding device:', this.accessory.displayName, accessory.context.device);
+    this.platform.log.debug(
+      '[SinricProThermostat()]: Adding device:',
+      this.accessory.displayName,
+      accessory.context.device,
+    );
 
-    this.service = this.accessory.getService(this.platform.Service.Thermostat)
-      ?? this.accessory.addService(this.platform.Service.Thermostat);
+    this.service =
+      this.accessory.getService(this.platform.Service.Thermostat) ??
+      this.accessory.addService(this.platform.Service.Thermostat);
 
     this.service.setPrimaryService(true);
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.name);
+    this.service.setCharacteristic(
+      this.platform.Characteristic.Name,
+      accessory.context.device.name,
+    );
 
     // register handlers for the Characteristic
-    this.service.getCharacteristic(this.platform.Characteristic.On)
+    this.service
+      .getCharacteristic(this.platform.Characteristic.On)
       .onSet(this.setPowerState.bind(this))
       .onGet(this.getPowerState.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
+    this.service
+      .getCharacteristic(this.platform.Characteristic.CurrentTemperature)
       .onGet(this.getCurrentTemperature.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.TargetTemperature)
+    this.service
+      .getCharacteristic(this.platform.Characteristic.TargetTemperature)
       .onGet(this.onGetTargetTemperature.bind(this))
       .onSet(this.onSetTargetTemperature.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits)
+    this.service
+      .getCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits)
       .onGet(this.getTemperatureDisplayUnits.bind(this))
       .onSet(this.setTemperatureDisplayUnits.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.CurrentHeatingCoolingState)
+    this.service
+      .getCharacteristic(
+        this.platform.Characteristic.CurrentHeatingCoolingState,
+      )
       .onGet(this.getCurrentHeatingCoolingState.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState)
+    this.service
+      .getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState)
       .onGet(this.getTargetHeatingCoolingState.bind(this))
       .onSet(this.setTargetHeatingCoolingState.bind(this));
 
     // restore present device state.
-    this.thermostatStates.currentTemperature = accessory.context.device.temperature ?? 10;
-    this.thermostatStates.targetTemperature = accessory.context.device.targetTemperature ?? 10;
-    this.thermostatStates.currentHeatingCoolingState = this.toCurrentHeatingCoolingState(accessory.context.device.thermostatMode);
-    this.thermostatStates.targetHeatingCoolingState = this.toTargetHeatingCoolingState(accessory.context.device.thermostatMode);
+    this.thermostatStates.currentTemperature =
+      accessory.context.device.temperature ?? 10;
+    this.thermostatStates.targetTemperature =
+      accessory.context.device.targetTemperature ?? 10;
+    this.thermostatStates.currentHeatingCoolingState =
+      this.toCurrentHeatingCoolingState(
+        accessory.context.device.thermostatMode,
+      );
+    this.thermostatStates.targetHeatingCoolingState =
+      this.toTargetHeatingCoolingState(accessory.context.device.thermostatMode);
   }
 
   /**
@@ -83,19 +121,40 @@ export class SinricProThermostat extends AccessoryController implements SinricPr
    * @param value  - {"state":"Off"}, { temperature: 17.5 }, { thermostatMode: 'HEAT' }
    */
   public updateState(action: string, value: any): void {
-    this.platform.log.debug('[updateState()]:', this.accessory.displayName, 'action=', action, 'value=', value);
+    this.platform.log.debug(
+      '[updateState()]:',
+      this.accessory.displayName,
+      'action=',
+      action,
+      'value=',
+      value,
+    );
 
-    if(action === ActionConstants.SET_POWER_STATE) {
+    if (action === ActionConstants.SET_POWER_STATE) {
       this.thermostatStates.on = 'ON' === value.state.toUpperCase();
-      this.service.getCharacteristic(this.platform.Characteristic.On).updateValue(this.thermostatStates.on);
-    } else if(action === ActionConstants.TARGET_TEMPERATURE) {
+      this.service
+        .getCharacteristic(this.platform.Characteristic.On)
+        .updateValue(this.thermostatStates.on);
+    } else if (action === ActionConstants.TARGET_TEMPERATURE) {
       this.thermostatStates.targetTemperature = value.temperature;
-      this.service.getCharacteristic(this.platform.Characteristic.TargetTemperature).updateValue(this.thermostatStates.targetTemperature);
-    } else if(action === ActionConstants.SET_THERMOSTAT_MODE) {
-      this.thermostatStates.currentHeatingCoolingState = this.toCurrentHeatingCoolingState(value.thermostatMode);
-      this.thermostatStates.targetHeatingCoolingState = this.toTargetHeatingCoolingState(value.thermostatMode);
-      this.service.getCharacteristic(this.platform.Characteristic.CurrentHeatingCoolingState).updateValue(this.thermostatStates.currentHeatingCoolingState);
-      this.service.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).updateValue(this.thermostatStates.targetHeatingCoolingState);
+      this.service
+        .getCharacteristic(this.platform.Characteristic.TargetTemperature)
+        .updateValue(this.thermostatStates.targetTemperature);
+    } else if (action === ActionConstants.SET_THERMOSTAT_MODE) {
+      this.thermostatStates.currentHeatingCoolingState =
+        this.toCurrentHeatingCoolingState(value.thermostatMode);
+      this.thermostatStates.targetHeatingCoolingState =
+        this.toTargetHeatingCoolingState(value.thermostatMode);
+      this.service
+        .getCharacteristic(
+          this.platform.Characteristic.CurrentHeatingCoolingState,
+        )
+        .updateValue(this.thermostatStates.currentHeatingCoolingState);
+      this.service
+        .getCharacteristic(
+          this.platform.Characteristic.TargetHeatingCoolingState,
+        )
+        .updateValue(this.thermostatStates.targetHeatingCoolingState);
     }
   }
 
@@ -105,11 +164,11 @@ export class SinricProThermostat extends AccessoryController implements SinricPr
   private toTargetHeatingCoolingState(thermostatMode: string) {
     let state = this.platform.Characteristic.TargetHeatingCoolingState.COOL;
 
-    if('OFF' === thermostatMode) {
+    if ('OFF' === thermostatMode) {
       state = this.platform.Characteristic.TargetHeatingCoolingState.OFF;
-    } else if('HEAT' === thermostatMode) {
+    } else if ('HEAT' === thermostatMode) {
       state = this.platform.Characteristic.TargetHeatingCoolingState.HEAT;
-    } else if('COOL' === thermostatMode) {
+    } else if ('COOL' === thermostatMode) {
       state = this.platform.Characteristic.TargetHeatingCoolingState.COOL;
     }
 
@@ -122,11 +181,11 @@ export class SinricProThermostat extends AccessoryController implements SinricPr
   private toCurrentHeatingCoolingState(thermostatMode: string) {
     let state = this.platform.Characteristic.CurrentHeatingCoolingState.COOL;
 
-    if('OFF' === thermostatMode) {
+    if ('OFF' === thermostatMode) {
       state = this.platform.Characteristic.CurrentHeatingCoolingState.OFF;
-    } else if('HEAT' === thermostatMode) {
+    } else if ('HEAT' === thermostatMode) {
       state = this.platform.Characteristic.CurrentHeatingCoolingState.HEAT;
-    } else if('COOL' === thermostatMode) {
+    } else if ('COOL' === thermostatMode) {
       state = this.platform.Characteristic.CurrentHeatingCoolingState.COOL;
     }
 
@@ -134,62 +193,118 @@ export class SinricProThermostat extends AccessoryController implements SinricPr
   }
 
   private getCurrentTemperature(): CharacteristicValue {
-    this.platform.log.debug('getCurrentTemperature:', this.accessory.displayName, '=', this.thermostatStates.currentTemperature);
+    this.platform.log.debug(
+      'getCurrentTemperature:',
+      this.accessory.displayName,
+      '=',
+      this.thermostatStates.currentTemperature,
+    );
     return this.thermostatStates.currentTemperature;
   }
 
   private onGetTargetTemperature(): CharacteristicValue {
-    this.platform.log.debug('onGetTargetTemperature:', this.accessory.displayName, '=', this.thermostatStates.targetTemperature);
+    this.platform.log.debug(
+      'onGetTargetTemperature:',
+      this.accessory.displayName,
+      '=',
+      this.thermostatStates.targetTemperature,
+    );
     return this.thermostatStates.targetTemperature;
   }
 
   private onSetTargetTemperature(value: CharacteristicValue) {
-    this.platform.log.debug('onSetTargetTemperature:', this.accessory.displayName, 'to', value);
+    this.platform.log.debug(
+      'onSetTargetTemperature:',
+      this.accessory.displayName,
+      'to',
+      value,
+    );
     this.thermostatStates.targetTemperature = value as number;
     super.targetTemperature(value);
   }
 
   getTemperatureDisplayUnits(): CharacteristicValue {
-    this.platform.log.debug('getTemperatureDisplayUnits:', this.accessory.displayName, '=', this.thermostatStates.targetTemperatureDisplayUnit);
+    this.platform.log.debug(
+      'getTemperatureDisplayUnits:',
+      this.accessory.displayName,
+      '=',
+      this.thermostatStates.targetTemperatureDisplayUnit,
+    );
     return this.thermostatStates.targetTemperatureDisplayUnit;
   }
 
   private setTemperatureDisplayUnits(value: CharacteristicValue) {
-    this.platform.log.debug('setTemperatureDisplayUnits:', this.accessory.displayName, 'to', value);
+    this.platform.log.debug(
+      'setTemperatureDisplayUnits:',
+      this.accessory.displayName,
+      'to',
+      value,
+    );
     this.thermostatStates.targetTemperatureDisplayUnit = value as number;
   }
 
   private getCurrentHeatingCoolingState(): CharacteristicValue {
-    this.platform.log.debug('getCurrentHeatingCoolingState:', this.accessory.displayName, '=', this.thermostatStates.currentHeatingCoolingState);
+    this.platform.log.debug(
+      'getCurrentHeatingCoolingState:',
+      this.accessory.displayName,
+      '=',
+      this.thermostatStates.currentHeatingCoolingState,
+    );
     return this.thermostatStates.currentHeatingCoolingState;
   }
 
   private getTargetHeatingCoolingState(): CharacteristicValue {
-    this.platform.log.debug('getTargetHeatingCoolingState:', this.accessory.displayName, '=', this.thermostatStates.targetHeatingCoolingState);
+    this.platform.log.debug(
+      'getTargetHeatingCoolingState:',
+      this.accessory.displayName,
+      '=',
+      this.thermostatStates.targetHeatingCoolingState,
+    );
     return this.thermostatStates.targetHeatingCoolingState;
   }
 
-  private setTargetHeatingCoolingState(value: CharacteristicValue) : void {
-    this.platform.log.debug('setTargetHeatingCoolingState:', this.accessory.displayName, 'to', value);
+  private setTargetHeatingCoolingState(value: CharacteristicValue): void {
+    this.platform.log.debug(
+      'setTargetHeatingCoolingState:',
+      this.accessory.displayName,
+      'to',
+      value,
+    );
     this.thermostatStates.targetHeatingCoolingState = value as number;
     let thermostatMode = 'AUTO';
 
-    if(this.platform.Characteristic.TargetHeatingCoolingState.OFF === this.thermostatStates.targetHeatingCoolingState) {
+    if (
+      this.platform.Characteristic.TargetHeatingCoolingState.OFF ===
+      this.thermostatStates.targetHeatingCoolingState
+    ) {
       thermostatMode = 'OFF';
-    } else if(this.platform.Characteristic.TargetHeatingCoolingState.HEAT === this.thermostatStates.targetHeatingCoolingState) {
+    } else if (
+      this.platform.Characteristic.TargetHeatingCoolingState.HEAT ===
+      this.thermostatStates.targetHeatingCoolingState
+    ) {
       thermostatMode = 'HEAT';
-    } else if(this.platform.Characteristic.TargetHeatingCoolingState.COOL === this.thermostatStates.targetHeatingCoolingState) {
+    } else if (
+      this.platform.Characteristic.TargetHeatingCoolingState.COOL ===
+      this.thermostatStates.targetHeatingCoolingState
+    ) {
       thermostatMode = 'COOL';
-    } else if(this.platform.Characteristic.TargetHeatingCoolingState.AUTO === this.thermostatStates.targetHeatingCoolingState) {
+    } else if (
+      this.platform.Characteristic.TargetHeatingCoolingState.AUTO ===
+      this.thermostatStates.targetHeatingCoolingState
+    ) {
       thermostatMode = 'AUTO';
     }
 
     super.setThermostatMode(thermostatMode);
-
   }
 
   private getPowerState(): CharacteristicValue {
-    this.platform.log.debug('getPowerState:', this.accessory.displayName, '=', this.thermostatStates.on);
+    this.platform.log.debug(
+      'getPowerState:',
+      this.accessory.displayName,
+      '=',
+      this.thermostatStates.on,
+    );
     return this.thermostatStates.on;
   }
 }

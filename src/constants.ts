@@ -7,7 +7,8 @@
 
 export const SINRICPRO_HOMEBRIDGE_CLIENT_ID = 'homebridge';
 export const SINRICPRO_API_ENDPOINT_BASE_URL = 'https://api.sinric.pro/api/v1';
-export const SINRICPRO_SSE_ENDPOINT_BASE_URL = 'https://portal.sinric.pro/sse/stream?accessToken=%s';
+export const SINRICPRO_SSE_ENDPOINT_BASE_URL =
+  'https://portal.sinric.pro/sse/stream?accessToken=%s';
 
 export abstract class ModelConstants {
   static readonly MANUFACTURER = 'SinricPro';
@@ -40,6 +41,8 @@ export abstract class ActionConstants {
   static readonly SET_THERMOSTAT_MODE = 'setThermostatMode';
   static readonly SET_MODE = 'setMode';
   static readonly DOORBELL_PRESS = 'DoorbellPress';
+  static readonly SET_COLOR_TEMPERATURE = 'setColorTemperature';
+  static readonly SET_COLOR = 'setColor';
 }
 
 export abstract class DeviceTypeConstants {
@@ -59,7 +62,9 @@ export abstract class DeviceTypeConstants {
   static readonly GARAGE_DOOR = 'sinric.devices.types.GARAGE_DOOR';
   static readonly BLIND = 'sinric.devices.types.BLIND';
   static readonly CAMERA = 'sinric.devices.types.CAMERA';
-  static readonly AIR_QUALITY_SENSOR = 'sinric.devices.types.AIR_QUALITY_SENSOR';
+  static readonly AIR_QUALITY_SENSOR =
+    'sinric.devices.types.AIR_QUALITY_SENSOR';
+
   static readonly ENERGY_SENSOR = 'sinric.devices.types.ENERGY_SENSOR';
   static readonly CUSTOM = 'sinric.devices.types.CUSTOM';
 }
